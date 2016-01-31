@@ -121,7 +121,7 @@ app.post('/subscriber/add_subscriber', function (req, res) {
 	})
 })
 
-app.post('/subscriber/add_subscription', function (req, res){
+app.post('/subscriber/add_subscriptions', function (req, res){
 	var arrayLength = req.body.categories.length;
 	for (var i = 0; i < arrayLength; i++) {
 		subscription = {
