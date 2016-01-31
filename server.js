@@ -1,3 +1,4 @@
+
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -6,8 +7,6 @@ var gcm = require('android-gcm');
 var gcmObject = new gcm.AndroidGcm('AIzaSyBanjYS6YkBTy066-dLFmhk98dDZ_jwVPQ');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-
-
 
 var con = mysql.createConnection({
 	host: "localhost",
@@ -285,6 +284,27 @@ app.post('/publisher/get_articles', function (req, res) {
 
 })
 
+app.post('/subscriber/get_subscriptions', function (req, res) {
+	queryArgs = [req.body.id];
+	query = 'SELECT category from subscriptions where subscriber = ?';
+	con.query(query, queryArgs, function (err, rows) {
+		if (err) {
+			res.end(JSON.stringify(errorResponse));
+		}
+		else {	
+			var subs = [];
+			for (var i = 0; i < rows.length; i++) {
+				subs[i] = rows[i].category;
+			}
+			result = {
+				success : true,
+				data : subs
+			}
+			res.end(JSON.stringify(result));
+		}
+	})
+})
+
 app.post('/get_article_content', function (req, res) {
 	queryArgs = [req.body.id];
 	query = 'SELECT content from articles where id = ?';
@@ -307,8 +327,6 @@ var server = app.listen(8081, function () {
   	var port = server.address().port
   	console.log("App listening at http://%s:%s", host, port)
 })
-
-
 
 
 
