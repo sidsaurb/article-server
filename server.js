@@ -67,7 +67,7 @@ app.post('/subscriber/do_login', function (req, res) {
 })
 
 app.get('/get_categories', function (req, res) {
-	con.query('SELECT * from categories', function (err, rows) {
+	con.query('SELECT * from categories ORDER BY id', function (err, rows) {
 		if (err) {
 			console.log(err);
 			res.end(JSON.stringify(errorResponse));
@@ -121,16 +121,35 @@ app.post('/subscriber/add_subscriber', function (req, res) {
 	})
 })
 
+app.post('/subscriber/update_regid', function (req, res) {
+	query = 'UPDATE subscribers SET regid = ? WHERE id = ?';
+	queryArgs = [req.body.regid, req.body.regid];
+	con.query(query, queryArgs, function (e, r) {
+		if (!e) {
+			res.end(JSON.stringify(successResponse));
+		} 
+		else {
+			res.end(JSON.stringify(errorResponse));
+		}
+	})
+})
+
 app.post('/subscriber/add_subscriptions', function (req, res){
 	var arrayLength = req.body.categories.length;
-	for (var i = 0; i < arrayLength; i++) {
-		subscription = {
-			subscriber : req.body.id,
-			category : req.body.categories[i]
+	con.query('DELETE from subscriptions WHERE subscriber = ?', [req.body.id], function (err,rows) { 
+		if(err) {
+			res.end(JSON.stringify(errorResponse));
+			return;
 		}
-		con.query('INSERT IGNORE INTO subscriptions SET ?', subscription, function (s,e) {});
-	}
-	res.end(JSON.stringify(successResponse));
+		for (var i = 0; i < arrayLength; i++) {
+			subscription = {
+				subscriber : req.body.id,
+				category : req.body.categories[i]
+			}
+			con.query('INSERT IGNORE INTO subscriptions SET ?', subscription, function (s,e) {});
+		}
+		res.end(JSON.stringify(successResponse));
+	})
 })
 
 app.post('/publisher/post_article', function (req, res) {
@@ -179,7 +198,7 @@ function sendPushNotifications(articleId, publisherId, title, category, timestam
 							set = set + r2[i].subscriber;
 						}
 						else {
-							set = set + r[i].subscriber + ",";
+							set = set + r2[i].subscriber + ",";
 						}
 					}
 					set = set + ")";
@@ -194,11 +213,11 @@ function sendPushNotifications(articleId, publisherId, title, category, timestam
 								registration_ids : regids,
 								data : data
 							})
-							//gcmObject.send(message, function (e4, r4) {
-							//	if (e4) {
-							//		console.log(e4)
-							//	}
-							//})
+							gcmObject.send(message, function (e4, r4) {
+								if (e4) {
+									console.log(e4)
+								}
+							})
 							console.log(message);
 						}
 					})
@@ -216,8 +235,16 @@ app.post('/subscriber/get_articles', function (req, res) {
 		}
 		else {
 			//result = JSON.stringify(r);
-			var set = "(";
 			var arrayLength = r.length;
+			if (arrayLength == 0) {
+				response = {
+					success : true,
+					data : []
+				}
+				res.end(JSON.stringify(response));
+				return;
+			}
+			var set = "(";
 			for (var i = 0; i < arrayLength; i++) {
 				if (i == arrayLength - 1){
 					set = set + r[i].category;
@@ -227,10 +254,10 @@ app.post('/subscriber/get_articles', function (req, res) {
 				}
 			}
 			set = set + ")";
-			query = 'SELECT id, category, publisher, title, timestamp from articles where category IN' + set;
+			query = 'SELECT id, category, publisher, title, timestamp from articles where category IN ' + set + ' ORDER BY timestamp DESC';
 			con.query(query, function (e1, r1) {
 				if (e1) {
-					//console.log(e1);
+					console.log(e1);
 					res.end(JSON.stringify(errorResponse));
 				}
 				else {
@@ -322,7 +349,7 @@ app.post('/get_article_content', function (req, res) {
 	})
 })
 
-var server = app.listen(8081, function () {
+var server = app.listen(8082, function () {
   	var host = server.address().address
   	var port = server.address().port
   	console.log("App listening at http://%s:%s", host, port)
