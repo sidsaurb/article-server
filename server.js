@@ -25,7 +25,7 @@ successResponse = {
 
 con.connect( function (err) {
 	if (err) {
-		console.log("Error connecting to db");
+		//console.log("Error connecting to db");
 		return;
 	}
 	//console.log("Connection established");
@@ -69,7 +69,7 @@ app.post('/subscriber/do_login', function (req, res) {
 app.get('/get_categories', function (req, res) {
 	con.query('SELECT * from categories ORDER BY id', function (err, rows) {
 		if (err) {
-			console.log(err);
+			//console.log(err);
 			res.end(JSON.stringify(errorResponse));
 		}
 		response = {
@@ -122,8 +122,9 @@ app.post('/subscriber/add_subscriber', function (req, res) {
 })
 
 app.post('/subscriber/update_regid', function (req, res) {
+	//console.log(req.body.regid);
 	query = 'UPDATE subscribers SET regid = ? WHERE id = ?';
-	queryArgs = [req.body.regid, req.body.regid];
+	queryArgs = [req.body.regid, req.body.id];
 	con.query(query, queryArgs, function (e, r) {
 		if (!e) {
 			res.end(JSON.stringify(successResponse));
@@ -190,7 +191,7 @@ function sendPushNotifications(articleId, publisherId, title, category, timestam
 			query1 = 'SELECT subscriber from subscriptions where category = ' + category;
 			con.query(query1, function (e2, r2) {
 				if (!e2) {
-					console.log(r2);
+					//console.log(r2);
 					var set = "(";
 					var arrayLength = r2.length;
 					for (var i = 0; i < arrayLength; i++) {
@@ -215,10 +216,11 @@ function sendPushNotifications(articleId, publisherId, title, category, timestam
 							})
 							gcmObject.send(message, function (e4, r4) {
 								if (e4) {
-									console.log(e4)
+									//console.log(e4)
 								}
+								//console.log(r4);
 							})
-							console.log(message);
+							//console.log(message);
 						}
 					})
 				}
@@ -257,7 +259,7 @@ app.post('/subscriber/get_articles', function (req, res) {
 			query = 'SELECT id, category, publisher, title, timestamp from articles where category IN ' + set + ' ORDER BY timestamp DESC';
 			con.query(query, function (e1, r1) {
 				if (e1) {
-					console.log(e1);
+					//console.log(e1);
 					res.end(JSON.stringify(errorResponse));
 				}
 				else {
@@ -295,7 +297,7 @@ app.post('/subscriber/get_articles', function (req, res) {
 
 app.post('/publisher/get_articles', function (req, res) {
 	queryArgs = [req.body.id];
-	query = 'SELECT id, category, title, timestamp from articles where publisher = ?';
+	query = 'SELECT id, category, title, timestamp from articles where publisher = ? ORDER BY timestamp DESC';
 	con.query(query, queryArgs, function (err, rows) {
 		if (err) {
 			res.end(JSON.stringify(errorResponse));
