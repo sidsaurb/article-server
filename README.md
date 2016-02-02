@@ -7,4 +7,6 @@ This is a javascript based web server build with nodejs. It aims at demonstratin
 * Subscribers subscribe to *categories* of articles about which they like to read.
 * Whenever a publisher publishes an article belonging to a *category*, all the subscribers who follow that *category* get notified about it.
 
-The subscriber and publisher components are being implemented in form of android apps. Their link will be updated soon.
+Link to publisher app: https://github.com/sidsaurb/article-publisher-android
+
+Link to subscriber app: https://github.com/sidsaurb/article-subscriber-android
